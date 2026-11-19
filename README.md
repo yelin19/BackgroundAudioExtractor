@@ -34,3 +34,7 @@ eas build -p android --profile preview
 The `preview` profile produces an installable Android `.apk`. The `production` profile is configured for a Play Store `.aab`.
 
 Expo Go can review the interface, but the full two-stage FFmpeg processing requires a native APK/development build.
+
+## Build from GitHub Actions
+
+The repository includes a manual workflow at `.github/workflows/build-apk.yml`. Add an `EXPO_TOKEN` repository secret in GitHub, then open **Actions → Build Android APK → Run workflow**. The workflow starts the EAS `preview` build using `eas.json`.
