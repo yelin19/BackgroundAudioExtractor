@@ -89,9 +89,10 @@ export async function runAudioPipeline(
 ): Promise<PipelineResult> {
   const stamp = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const original = tempFile(`${TEMP_PREFIX}-original-${stamp}.m4a`);
+  const backgroundStage1 = tempFile(`${TEMP_PREFIX}-bg-stage1-${stamp}.m4a`);
   const background = tempFile(`${TEMP_PREFIX}-bg-audio-${stamp}.m4a`);
 
-  await clearTemporaryFiles([original.uri, background.uri]);
+  await clearTemporaryFiles([original.uri, backgroundStage1.uri, background.uri]);
 
   if (Platform.OS === "web") {
     // Browser preview keeps the workflow demonstrable without claiming that
@@ -127,11 +128,8 @@ export async function runAudioPipeline(
     ]);
 
     onProgress("separating");
-    // Lightweight background-preserving mix: subtract the stereo center so
-    // center-panned speech is strongly reduced while side-panned ambience and
-    // music remain. It is intentionally not an ML model; off-center speech
-    // can still remain and a future model mode can handle that case.
-    // The second command reads only the temporary original-audio file above.
+    // Pass 1: subtract the stereo center so center-panned speech is strongly
+    // reduced while side-panned ambience and music remain.
     await executeFfmpeg([
       "-y",
       "-i",
@@ -144,8 +142,28 @@ export async function runAudioPipeline(
       "aac",
       "-b:a",
       "128k",
+      toFfmpegPath(backgroundStage1.uri),
+    ]);
+
+    // Pass 2: soften intelligibility bands that can remain after center
+    // cancellation, then apply gentle denoising. This is still lightweight
+    // and deterministic; it is not a neural source-separation model.
+    await executeFfmpeg([
+      "-y",
+      "-i",
+      toFfmpegPath(backgroundStage1.uri),
+      "-af",
+      "equalizer=f=900:t=q:w=1.0:g=-5,equalizer=f=1800:t=q:w=1.2:g=-6,equalizer=f=2800:t=q:w=1.0:g=-5,afftdn=nr=8:nf=-35:tn=1,volume=1.08,alimiter=limit=0.95",
+      "-ac",
+      "2",
+      "-c:a",
+      "aac",
+      "-b:a",
+      "128k",
       toFfmpegPath(background.uri),
     ]);
+
+    await clearTemporaryFiles([backgroundStage1.uri]);
 
     return {
       originalAudioUri: original.uri,
@@ -154,7 +172,7 @@ export async function runAudioPipeline(
       sourceName: video.name,
     };
   } catch (error) {
-    await clearTemporaryFiles([original.uri, background.uri]);
+    await clearTemporaryFiles([original.uri, backgroundStage1.uri, background.uri]);
     throw error;
   }
 }
