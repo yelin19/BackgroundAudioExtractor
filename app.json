@@ -69,6 +69,7 @@
       "expo-document-picker",
       "expo-sharing",
       "./plugins/with-ffmpeg-package",
+      "./plugins/with-ffmpeg-maven-fork",
       [
         "expo-audio",
         {
