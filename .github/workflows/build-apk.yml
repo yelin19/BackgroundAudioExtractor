@@ -36,14 +36,5 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          cp app.config.ts /tmp/app.config.ts.backup
-          set +e
           npx eas-cli@latest init --account yelin20187s-team --non-interactive
-          INIT_STATUS=$?
-          set -e
-          test -f .eas/project.json || (echo "EAS project initialization did not create .eas/project.json"; exit "$INIT_STATUS")
-          EAS_PROJECT_ID=$(node -p "require('./.eas/project.json').projectId")
-          test -n "$EAS_PROJECT_ID" || (echo "EAS project ID is empty"; exit 1)
-          cp /tmp/app.config.ts.backup app.config.ts
-          export EAS_PROJECT_ID
           npx eas-cli@latest build --platform android --profile preview --non-interactive
