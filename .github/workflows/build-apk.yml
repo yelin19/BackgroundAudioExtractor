@@ -35,4 +35,6 @@ jobs:
       - name: Start EAS preview build
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: npx eas-cli@latest build --platform android --profile preview --non-interactive
+        run: |
+          npx eas-cli@latest init --account yelin20187s-team --non-interactive
+          npx eas-cli@latest build --platform android --profile preview --non-interactive

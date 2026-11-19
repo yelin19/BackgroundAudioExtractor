@@ -61,6 +61,7 @@ const publicRuntime = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
+  owner: "yelin20187s-team",
   version: "1.0.0",
   extra: publicRuntime,
   orientation: "portrait",
