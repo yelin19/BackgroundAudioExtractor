@@ -127,15 +127,17 @@ export async function runAudioPipeline(
     ]);
 
     onProgress("separating");
-    // Lightweight background-preserving mix: keep stereo ambience/music while
-    // attenuating centre-panned speech. It is intentionally not an ML model.
+    // Lightweight background-preserving mix: subtract the stereo center so
+    // center-panned speech is strongly reduced while side-panned ambience and
+    // music remain. It is intentionally not an ML model; off-center speech
+    // can still remain and a future model mode can handle that case.
     // The second command reads only the temporary original-audio file above.
     await executeFfmpeg([
       "-y",
       "-i",
       toFfmpegPath(original.uri),
       "-af",
-      "pan=stereo|c0=0.78*c0-0.22*c1|c1=0.78*c1-0.22*c0,volume=1.12,alimiter=limit=0.95",
+      "pan=stereo|c0=c0-c1|c1=c1-c0,volume=0.82,alimiter=limit=0.95",
       "-ac",
       "2",
       "-c:a",
