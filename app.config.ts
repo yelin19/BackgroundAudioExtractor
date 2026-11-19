@@ -63,7 +63,12 @@ const config: ExpoConfig = {
   slug: env.appSlug,
   owner: "yelin20187s-team",
   version: "1.0.0",
-  extra: publicRuntime,
+  extra: {
+    ...publicRuntime,
+    eas: {
+      projectId: process.env.EAS_PROJECT_ID ?? "",
+    },
+  },
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
